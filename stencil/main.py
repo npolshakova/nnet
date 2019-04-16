@@ -8,7 +8,7 @@ from models import OneLayerNN, TwoLayerNN
 
 
 
-def test_models(dataset, epochs, test_size=0.2):
+def test_models(dataset, test_size=0.2):
     '''
         Tests LinearRegression, OneLayerNN, TwoLayerNN on a given dataset.
         :param dataset The path to the dataset
@@ -38,15 +38,15 @@ def test_models(dataset, epochs, test_size=0.2):
     #### 1-Layer NN ######
     print('----- 1-Layer NN -----')
     nnmodel = OneLayerNN()
-    nnmodel.train(X_train_b, Y_train, epochs=epochs, print_loss=False)
+    nnmodel.train(X_train_b, Y_train, print_loss=False)
     print('Average Training Loss:', nnmodel.average_loss(X_train_b, Y_train))
     print('Average Testing Loss:', nnmodel.average_loss(X_test_b, Y_test))
 
     #### 2-Layer NN ######
     print('----- 2-Layer NN -----')
-    model = TwoLayerNN(10)
+    model = TwoLayerNN()
     # Use X without a bias, since we learn a bias in the 2 layer NN.
-    model.train(X_train, Y_train, epochs=epochs, print_loss=False)
+    model.train(X_train, Y_train, print_loss=False)
     print('Average Training Loss:', model.average_loss(X_train, Y_train))
     print('Average Testing Loss:', model.average_loss(X_test, Y_test))
 
@@ -55,7 +55,7 @@ def main():
     # Set random seeds. DO NOT CHANGE THIS IN YOUR FINAL SUBMISSION.
     random.seed(0)
     np.random.seed(0)
-    test_models('data/wine.txt', 25)
+    test_models('data/wine.txt')
 
 
 if __name__ == "__main__":

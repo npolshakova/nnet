@@ -5,7 +5,7 @@ import os
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from models import OneLayerNN, TwoLayerNN
-
+from generate_data import generate_data
 
 
 def test_models(dataset, test_size=0.2):
@@ -23,6 +23,7 @@ def test_models(dataset, test_size=0.2):
     # Load in the dataset
     data = np.loadtxt(dataset, skiprows = 1)
     X, Y = data[:, 1:], data[:, 0]
+    #X, Y = generate_data()
 
     # Normalize the features
     X = (X-np.mean(X, axis=0))/np.std(X, axis=0)

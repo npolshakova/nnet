@@ -29,6 +29,27 @@ def sigmoid_derivative(x):
     '''
     return sigmoid(x) * (1 - sigmoid(x))
 
+def step(x):
+    xcopy = x.copy()
+    xcopy[x<0] = 0
+    xcopy[x>0] = 1
+    return xcopy
+
+def step_derivative(x):
+    return 0
+
+def relu(x):
+    xcopy = x.copy()
+    xcopy[x<0] = 0
+    return xcopy
+
+def relu_derivative(x):
+    xcopy = x.copy()
+    xcopy[xcopy > 1] = 1
+    xcopy[xcopy <= 0] = 0
+    print(xcopy)
+    return xcopy
+
 class OneLayerNN:
     '''
         One layer neural network trained with Stocastic Gradient Descent (SGD)
@@ -71,7 +92,12 @@ class OneLayerNN:
         :param X 2D Numpy array where each row contains an example.
         :return A 1D Numpy array with one element for each row in X containing the predicted value.
         '''
-        return sigmoid(np.dot(X, self.weights))
+        ret = []
+        for i in range(len(X)):
+            x = X[i]
+            y = np.dot(x, self.weights)
+            ret.append(y)
+        return ret
 
     def loss(self, X, Y):
         '''
@@ -99,7 +125,7 @@ class OneLayerNN:
 
 class TwoLayerNN:
 
-    def __init__(self, hidden_size=10, activation=sigmoid, activation_derivative=sigmoid_derivative):
+    def __init__(self, hidden_size=20, activation=sigmoid, activation_derivative=sigmoid_derivative):
         '''
         @attrs:
             activation: the activation function applied after the first layer
@@ -129,31 +155,36 @@ class TwoLayerNN:
         :param print_loss If True, print the loss after each epoch.
         :return None
         '''
-        self.W = np.random.randn(len(X[0]), self.hidden_size)
-        self.v = np.random.randn(self.hidden_size, self.output_neurons)
+        self.W = np.random.randn(self.hidden_size,X.shape[1])
+        self.v = np.random.randn(self.hidden_size)
+        self.b1 = np.random.randn(self.hidden_size)
+        self.b2 = 0
 
         for e in range(epochs):
             for i in range(len(X)):
                 #FORWARD
-                x_i = X[i]
-                x_i = x_i[:,None].T
-                z = np.dot(x_i, self.W)
-                layer1 = self.activation(z + self.b1)
-                z2 = np.dot(layer1,self.v)
-                layer2 = self.activation(z2 + self.b2)
+                layer0 = X[i]
+                a = np.matmul(self.W,layer0) + self.b1
+                layer1 = self.activation(a) # h = σ(W x + b1)
+                layer2 = np.dot(layer1, self.v) + self.b2 # z = v · h + b2,
 
                 # BACK
-                layer2_error = Y[i] - layer2 # d_t
-                layer2_delta = layer2_error * self.activation_derivative(layer2)
+                layer2_error = layer2 - Y[i] # d_t
+                b2_delta = 2 * layer2_error
 
-                layer1_error = layer2_delta.dot(self.v.T)
-                layer1_delta = layer1_error * self.activation_derivative(layer1)
+                v_delta = layer1 * b2_delta
 
-                self.W += x_i.T.dot(layer1_delta)
-                self.v += layer1.T.dot(layer2_delta)
+                b1_delta = 2 * layer2_error * self.v * self.activation_derivative(a)
 
-            if print_loss:
-                print(self.loss(X,Y))
+                w_delta = np.outer(b1_delta, layer0)
+
+                self.W -= w_delta * learning_rate
+                self.v -= v_delta * learning_rate
+                self.b1 -= b1_delta * learning_rate
+                self.b2 -= b2_delta * learning_rate
+
+            #if print_loss:
+                #print(self.average_loss(X,Y))
         pass
 
     def predict(self, X):
@@ -163,8 +194,13 @@ class TwoLayerNN:
         :param X 2D Numpy array where each row contains an example.
         :return A 1D Numpy array with one element for each row in X containing the predicted value.
         '''
-        layer1 = self.activation(np.dot(X, self.W) + self.b1)
-        return self.activation(np.dot(layer1, self.v) + self.b2)
+        p = []
+        for x in X:
+            a = np.matmul(self.W,x) + self.b1
+            layer1 = self.activation(a) # h = σ(W x + b1)
+            layer2 = np.dot(layer1, self.v) + self.b2 # z = v · h + b2,
+            p.append(layer2)
+        return p
 
     def loss(self, X, Y):
         '''
